@@ -4,49 +4,54 @@ import datetime
 import plotly.express as px
 
 # --- App Configuration ---
-st.set_page_config(page_title="UrBank Demo", page_icon="🏙️", layout="centered")
+st.set_page_config(page_title="UrbanBank Demo", page_icon="🏙️", layout="centered")
 
 # --- Initial State Management ---
 if 'checking_balance' not in st.session_state:
     st.session_state.checking_balance = 2450.00
 if 'vault_balance' not in st.session_state:
     st.session_state.vault_balance = 530.75
+if 'invest_balance' not in st.session_state:
+    st.session_state.invest_balance = 1240.50
 if 'base_apy' not in st.session_state:
     st.session_state.base_apy = 1.50
 
 # --- Mock Data ---
 transactions = pd.DataFrame({
-    'Date': [datetime.date.today() - datetime.timedelta(days=i) for i in range(5)],
+    'Date': [(datetime.date.today() - datetime.timedelta(days=i)).strftime('%Y-%m-%d') for i in range(5)],
     'Merchant': ['MBTA Transit', 'Whole Foods', 'Uber Eats', 'Spotify', 'Sweetgreen'],
     'Category': ['Transit', 'Groceries', 'Food Delivery', 'Subscription', 'Dining'],
     'Amount': [2.40, 65.20, 32.50, 10.99, 15.00],
     'Cashback': ['+$0.05', '+$0.65', '-', '+$0.11', '-']
 })
 
-# Mock data for Pie Chart based on typical paycheck distribution
 expense_data = pd.DataFrame({
     "Category": ["Housing", "Transportation", "Food & Beverage", "Savings", "Utilities", "Personal/Misc", "Debt & Medical"],
     "Allocation (%)": [30, 15, 15, 15, 10, 10, 5]
 })
 
-# Mock data for Vault Growth over time
+# Fixed chronological sorting for the area chart
+dates = [(datetime.date.today() - datetime.timedelta(days=13-i)).strftime('%b %d') for i in range(14)]
 vault_history = pd.DataFrame({
-    "Day": [f"Day {i}" for i in range(1, 15)],
+    "Date": dates,
     "Balance": [200, 215, 230, 245, 260, 310, 325, 340, 355, 390, 410, 425, 480, 530.75]
 })
 
 # --- Main UI Header ---
-st.title("🏙️ UrBank")
+st.title("🏙️ UrbanBank")
 st.caption('"Live Well, Spend Smart, Save Automatically"')
 
 # --- Tabs ---
-tab_home, tab_wellness, tab_vault, tab_pantry = st.tabs([
-    "🏠 Home", "📈 Earn More (APY)", "🏦 Smart Vault", "🛒 Pantry Mode"
+tab_home, tab_wellness, tab_vault, tab_pantry, tab_invest = st.tabs([
+    "🏠 Home", "📈 Earn More", "🏦 Vault", "🛒 Pantry", "🚀 Invest"
 ])
 
 # --- TAB 1: Home ---
 with tab_home:
     st.header("Account Overview")
+    
+    # Referral Banner (Aligns with Slide 6)
+    st.info("🤝 **Invite a friend to UrbanBank!** You both get $20 when they make their first transit tap.")
     
     col1, col2 = st.columns(2)
     col1.metric("Checking Balance", f"${st.session_state.checking_balance:,.2f}")
@@ -54,7 +59,6 @@ with tab_home:
     
     st.divider()
     
-    # Interactive Expense Pie Chart
     st.subheader("Where is your paycheck going?")
     fig = px.pie(
         expense_data, 
@@ -69,14 +73,8 @@ with tab_home:
     st.divider()
     
     st.subheader("Recent Transactions")
-    st.write("Automatic cashback from Transit, Groceries, and Subscriptions is instantly routed to your Smart Vault.")
-    
-    st.dataframe(
-        transactions, 
-        use_container_width=True,
-        hide_index=True
-    )
-    
+    st.write("Automatic cashback is instantly routed to your Smart Vault.")
+    st.dataframe(transactions, use_container_width=True, hide_index=True)
     st.button("💳 View Virtual Card Details", use_container_width=True)
 
 # --- TAB 2: Earn More (APY) ---
@@ -84,7 +82,7 @@ with tab_wellness:
     st.header("Your Lifestyle, Your Rate")
     st.write("Complete daily urban habits to boost your base 1.5% APY up to 4.0%.")
     
-    st.info("📱 Connected Devices: Apple Watch, MBTA Transit Card")
+    st.info("📱 Connected Devices: Garmin Forerunner 265, MBTA Transit Card")
     
     st.subheader("Today's Progress")
     goal_steps = st.checkbox("Hit daily step target (10,000 steps) [+0.5%]")
@@ -107,8 +105,11 @@ with tab_wellness:
     
     st.progress(city_score / 100, text=f"City Score Progress: {city_score}%")
     
+    # Aligned with Slide 23 (Daily Reset)
+    st.caption("⏳ Your APY tier and City Score will reset at midnight.")
+    
     if city_score == 100:
-        st.success("🎉 Incredible! You've unlocked the maximum interest boost for the week!")
+        st.success("🎉 Incredible! You've unlocked the maximum interest boost for today!")
 
 # --- TAB 3: Smart Savings Vault ---
 with tab_vault:
@@ -119,23 +120,15 @@ with tab_vault:
     col1.metric("Total Vault Balance", f"${st.session_state.vault_balance:,.2f}")
     col2.metric("Saved this week", "$14.55", delta="+$2.10 Today")
     
-    # Interactive Area Chart for Vault Growth
     st.subheader("Vault Growth (Last 14 Days)")
-    st.area_chart(vault_history.set_index("Day"), color="#1E90FF")
+    st.area_chart(vault_history.set_index("Date"), color="#1E90FF")
     
     st.divider()
     st.subheader("Your Target Goals")
-    
-    # Primary large goal progress bar
     st.write("🚗 **New Car Down Payment ($2,100 / $10,000)**")
     st.progress(0.21)
-    
-    # Secondary goals
     st.write("🚨 **Emergency Fund ($650 / $1,000)**")
     st.progress(0.65)
-    
-    st.write("🍁 **Montreal Trip ($450 / $800)**")
-    st.progress(0.56)
     
     st.divider()
     st.subheader("Round-Up Booster Settings")
@@ -148,16 +141,31 @@ with tab_vault:
 # --- TAB 4: Pantry Mode ---
 with tab_pantry:
     st.header("Pantry Mode Insights")
-    st.write("UrBank analyzes your grocery vs. delivery trends to help you save.")
+    st.write("UrbanBank analyzes your grocery vs. delivery trends to help you save.")
     
     chart_data = pd.DataFrame({
         "Category": ["Groceries", "Food Delivery", "Dining Out"],
         "Amount Spent ($)": [65.20, 92.00, 45.00]
     })
-    
     st.bar_chart(chart_data, x="Category", y="Amount Spent ($)", color="#1E90FF")
     
     st.warning("💡 **Insight:** You spent $92 on delivery this week. Cooking three meals at home could unlock your next APY boost and save you approximately $45.")
-    
-    st.subheader("Action Plan")
     st.button("Transfer $45 to Smart Vault instead", type="primary", use_container_width=True)
+
+# --- TAB 5: Invest (Aligns with Slides 5, 18, 19) ---
+with tab_invest:
+    st.header("Automated Investing")
+    st.write("Retire early and achieve financial freedom with 0% commission ETF portfolios.")
+    
+    st.metric("Total Portfolio Value", f"${st.session_state.invest_balance:,.2f}", delta="+$12.50 Today")
+    
+    st.subheader("Auto-Invest Directives")
+    st.checkbox("Sweep checking balance over $2,500 into S&P 500 ETF", value=True)
+    st.checkbox("Divert 50% of monthly cashback to Retirement Portfolio", value=False)
+    
+    st.divider()
+    st.subheader("Your Portfolios")
+    st.write("📈 **Urban Aggressive Growth (ETFs)** - $840.00")
+    st.write("🛡️ **Urban Safe Yield (Bonds)** - $400.50")
+    
+    st.button("Explore Financial Freedom Courses", use_container_width=True)
