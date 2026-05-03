@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
 import datetime
-import numpy as np
+import plotly.express as px
 
 # --- App Configuration ---
-st.set_page_config(page_title="UrBank Demo", page_icon="🏙️", layout="centered")
+st.set_page_config(page_title="UrbanBank Demo", page_icon="🏙️", layout="centered")
 
 # --- Initial State Management ---
 if 'checking_balance' not in st.session_state:
@@ -23,8 +23,20 @@ transactions = pd.DataFrame({
     'Cashback': ['+$0.05', '+$0.65', '-', '+$0.11', '-']
 })
 
+# Mock data for Pie Chart based on typical paycheck distribution
+expense_data = pd.DataFrame({
+    "Category": ["Housing", "Transportation", "Food & Beverage", "Savings", "Utilities", "Personal/Misc", "Debt & Medical"],
+    "Allocation (%)": [30, 15, 15, 15, 10, 10, 5]
+})
+
+# Mock data for Vault Growth over time
+vault_history = pd.DataFrame({
+    "Day": [f"Day {i}" for i in range(1, 15)],
+    "Balance": [200, 215, 230, 245, 260, 310, 325, 340, 355, 390, 410, 425, 480, 530.75]
+})
+
 # --- Main UI Header ---
-st.title("🏙️ UrBank")
+st.title("🏙️ UrbanBank")
 st.caption('"Live Well, Spend Smart, Save Automatically"')
 
 # --- Tabs ---
@@ -41,52 +53,24 @@ with tab_home:
     col2.metric("Smart Vault Balance", f"${st.session_state.vault_balance:,.2f}")
     
     st.divider()
-    st.subheader("Recent Transactions")
-    st.write("Automatic cashback from Transit, Groceries, and Subscriptions is instantly routed to your Smart Vault.")
     
-    # Styled dataframe
-    st.dataframe(
-        transactions, 
-        use_container_width=True,
-        hide_index=True
+    # Interactive Expense Pie Chart
+    st.subheader("Where is your paycheck going?")
+    fig = px.pie(
+        expense_data, 
+        values='Allocation (%)', 
+        names='Category', 
+        hole=0.5,
+        color_discrete_sequence=px.colors.sequential.Tealgrn
     )
-    
-    st.button("💳 View Virtual Card Details", use_container_width=True)
-
-# --- TAB 2: Earn More (APY) ---
-with tab_wellness:
-    st.header("Your Lifestyle, Your Rate")
-    st.write("Complete daily urban habits to boost your base 1.5% APY up to 4.0%.")
-    
-    st.info("📱 Connected Devices: Apple Watch, MBTA Transit Card")
-    
-    # Interactive checkboxes
-    st.subheader("Today's Progress")
-    goal_steps = st.checkbox("Hit daily step target (10,000 steps) [+0.5%]")
-    goal_transit = st.checkbox("Commute by public transit or bike [+0.5%]")
-    goal_screen = st.checkbox("Stay under personal screen-time limit [+0.5%]")
-    goal_cook = st.checkbox("Cook at home (No food delivery today) [+0.5%]")
-    goal_sleep = st.checkbox("Consistent sleep schedule (8 hours) [+0.5%]")
-    
-    # Logic calculations
-    goals_met = sum([goal_steps, goal_transit, goal_screen, goal_cook, goal_sleep])
-    current_apy = st.session_state.base_apy + (goals_met * 0.5)
-    city_score = int((goals_met / 5) * 100)
+    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), showlegend=True)
+    st.plotly_chart(fig, use_container_width=True)
     
     st.divider()
     
-    col1, col2 = st.columns(2)
-    col1.metric(label="Current APY", value=f"{current_apy:.2f}%", delta=f"+{goals_met * 0.5:.2f}% Boost")
+    st.subheader("Recent Transactions")
+    st.write("Automatic cashback from Transit, Groceries, and Subscriptions is instantly routed to your Smart Vault.")
     
-    score_color = "normal" if city_score >= 60 else ("inverse" if city_score < 40 else "off")
-    col2.metric(label="City Score", value=f"{city_score}/100", delta_color=score_color)
-    
-    st.progress(city_score / 100, text=f"City Score Progress: {city_score}%")
-    
-    if city_score == 100:
-        st.success("🎉 Incredible! You've unlocked the maximum interest boost for the week!")
-
-# --- TAB 3: Smart Savings Vault ---
-with tab_vault:
-    st.header("Smart Savings Vault")
-    st.write("Money accumulated automatically from your daily habits.")
+    st.dataframe(
+        transactions, 
+        use_container_width=
