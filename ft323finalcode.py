@@ -82,7 +82,7 @@ with tab_wellness:
     st.header("Your Lifestyle, Your Rate")
     st.write("Complete daily urban habits to boost your base 1.5% APY up to 4.0%.")
     
-    st.info("📱 Connected Devices: Garmin Forerunner 265, MBTA Transit Card")
+    st.info("📱 Connected Devices: Apple watch, Urbank Transit Card")
     
     st.subheader("Today's Progress")
     goal_steps = st.checkbox("Hit daily step target (10,000 steps) [+0.5%]")
