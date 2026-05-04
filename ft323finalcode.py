@@ -4,7 +4,7 @@ import datetime
 import plotly.express as px
 
 # --- App Configuration ---
-st.set_page_config(page_title="UrbanBank Demo", page_icon="🏙️", layout="centered")
+st.set_page_config(page_title="Urbank Demo", page_icon="🏙️", layout="centered")
 
 # --- Initial State Management ---
 if 'checking_balance' not in st.session_state:
@@ -38,7 +38,7 @@ vault_history = pd.DataFrame({
 })
 
 # --- Main UI Header ---
-st.title("🏙️ UrbanBank")
+st.title("🏙️ Urbank")
 st.caption('"Live Well, Spend Smart, Save Automatically"')
 
 # --- Tabs ---
@@ -51,7 +51,7 @@ with tab_home:
     st.header("Account Overview")
     
     # Referral Banner (Aligns with Slide 6)
-    st.info("🤝 **Invite a friend to UrbanBank!** You both get $20 when they make their first transit tap.")
+    st.info("🤝 **Invite a friend to Urbank!** You both get $20 when they make their first transit tap.")
     
     col1, col2 = st.columns(2)
     col1.metric("Checking Balance", f"${st.session_state.checking_balance:,.2f}")
@@ -141,7 +141,7 @@ with tab_vault:
 # --- TAB 4: Pantry Mode ---
 with tab_pantry:
     st.header("Pantry Mode Insights")
-    st.write("UrbanBank analyzes your grocery vs. delivery trends to help you save.")
+    st.write("Urbank analyzes your grocery vs. delivery trends to help you save.")
     
     chart_data = pd.DataFrame({
         "Category": ["Groceries", "Food Delivery", "Dining Out"],
